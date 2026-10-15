@@ -35,6 +35,11 @@ white headlines, one electric accent, big rounded cards and previews that loop.
   columns (three on a phone) drift up and down at different speeds and pause on hover. Each
   3:4 tile has a glass pill naming the animal and country, and every animal appears once before
   any repeats. iNaturalist photos use their 500px `medium` copy, not the original.
+- **Live map of Africa** (`#africa`): Leaflet on inverted OpenStreetMap tiles in a big rounded
+  card, framed on Africa. Every African sighting is a dim lime dot; a glowing pulse hops between
+  them in a random order every 2.6s, lighting each, while a glass "Spotted" card top-right names
+  the animal, place, date and observer. A pill bottom-left counts sightings and countries.
+  Click a dot for its popup. Runs only on screen; reduced motion lights every dot and stays still.
 - **Tiles and cards**: `--surface`, soft border; on hover a lime edge and a soft lime glow.
 - **Previews**: CSS loops only, paused off screen and frozen on the first frame for reduced motion.
 - **Sightings**: a photo wall of cards, 4:3 photos, with gradient placeholders when there's none.

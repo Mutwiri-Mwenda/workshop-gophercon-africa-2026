@@ -16,6 +16,7 @@ templ Home(sightings []sighting.Sighting) {
 		@strip()
 		@how()
 		@features(p)
+		@africaMapSection(p.Africa)
 		if p.Sample != nil {
 			@compare(p)
 		}
@@ -133,8 +134,8 @@ templ features(p homeProps) {
 		<div class="bento">
 			<article class="tile tile--map reveal">
 				<div class="tile__preview">
-					<svg class="map" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label={ fmt.Sprintf("%d sightings plotted on a world map", len(p.Dots)) }>
-						<g class="map__grid">
+					<svg class="worldmap" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label={ fmt.Sprintf("%d sightings plotted on a world map", len(p.Dots)) }>
+						<g class="worldmap__grid">
 							for x := 0; x <= 360; x += 30 {
 								<line x1={ fmt.Sprint(x) } y1="0" x2={ fmt.Sprint(x) } y2="180"></line>
 							}
@@ -142,7 +143,7 @@ templ features(p homeProps) {
 								<line x1="0" y1={ fmt.Sprint(y) } x2="360" y2={ fmt.Sprint(y) }></line>
 							}
 						</g>
-						<g class="map__dots">
+						<g class="worldmap__dots">
 							for _, d := range p.Dots {
 								<circle cx={ d.X } cy={ d.Y } r="1.6"></circle>
 							}
@@ -228,6 +229,33 @@ templ features(p homeProps) {
 				@tileText(fmt.Sprintf(homeCopy.Observers.Title, p.Summary.Recorders), homeCopy.Observers.Body)
 			</article>
 		</div>
+	</section>
+}
+
+templ africaMapSection(m africaMap) {
+	<section class="section wrap" id="africa" aria-labelledby="africa-title">
+		@sectionHead("africa-title", homeCopy.AfricaEyebrow, homeCopy.AfricaTitle)
+		if len(m.Points) == 0 {
+			<p class="empty">{ homeCopy.AfricaEmpty }</p>
+		} else {
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+			<link rel="stylesheet" href="/assets/css/map.css"/>
+			<div class="atlas reveal">
+				<div class="map map--dark" data-map="africa-points" role="region" aria-label={ homeCopy.AfricaLabel }>
+					<p class="map__fallback">{ homeCopy.AfricaFallback }</p>
+				</div>
+				<div class="atlas__ticker" data-ticker hidden>
+					<p class="atlas__label"><span class="pulse" aria-hidden="true"></span>{ homeCopy.AfricaLive }</p>
+					<p class="atlas__name" data-ticker-name></p>
+					<p class="atlas__meta" data-ticker-meta></p>
+					<p class="atlas__meta" data-ticker-by></p>
+				</div>
+				<p class="atlas__stat">{ fmt.Sprintf(homeCopy.AfricaStat, len(m.Points), m.Countries) }</p>
+			</div>
+			@templ.JSONScript("africa-points", m.Points)
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+			<script src="/assets/js/africa-map.js" defer></script>
+		}
 	</section>
 }
 

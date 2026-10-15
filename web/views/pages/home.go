@@ -16,6 +16,7 @@ type (
 	homeProps struct {
 		Summary   sighting.Summary
 		Wall      [][]wallTile
+		Africa    africaMap
 		Dots      []dot
 		Spark     spark
 		Top       []bar
@@ -28,6 +29,20 @@ type (
 	// wallTile is one photo on the hero's moving wall of animals.
 	wallTile struct {
 		Name, Place, Photo, Placeholder string
+	}
+	// africaMap is what the live map of Africa shows.
+	africaMap struct {
+		Points    []mapPoint
+		Countries int
+	}
+	// mapPoint is one sighting on the map, handed to africa-map.js as JSON.
+	mapPoint struct {
+		Lat   float64 `json:"lat"`
+		Lng   float64 `json:"lng"`
+		Name  string  `json:"name"`
+		Place string  `json:"place"`
+		Date  string  `json:"date"`
+		By    string  `json:"by,omitzero"`
 	}
 	// dot is a sighting's position on a 360 by 180 equirectangular map.
 	dot struct{ X, Y string }
@@ -51,6 +66,7 @@ func newHomeProps(sightings []sighting.Sighting) homeProps {
 		return !ok
 	})
 	p.Wall = newWall(withPhoto)
+	p.Africa = newAfricaMap(sightings)
 	if len(withPhoto) > 5 {
 		p.Photo = &withPhoto[5]
 	} else if len(withPhoto) > 0 {
@@ -147,6 +163,41 @@ func smallPhoto(url string) string {
 		return url
 	}
 	return strings.Replace(url, "/original.", "/medium.", 1)
+}
+
+// africa holds the ISO codes of Africa's countries and territories.
+var africa = map[string]bool{
+	"DZ": true, "AO": true, "BJ": true, "BW": true, "BF": true, "BI": true, "CV": true, "CM": true,
+	"CF": true, "TD": true, "KM": true, "CG": true, "CD": true, "CI": true, "DJ": true, "EG": true,
+	"GQ": true, "ER": true, "SZ": true, "ET": true, "GA": true, "GM": true, "GH": true, "GN": true,
+	"GW": true, "KE": true, "LS": true, "LR": true, "LY": true, "MG": true, "MW": true, "ML": true,
+	"MR": true, "MU": true, "YT": true, "MA": true, "MZ": true, "NA": true, "NE": true, "NG": true,
+	"RE": true, "RW": true, "SH": true, "ST": true, "SN": true, "SC": true, "SL": true, "SO": true,
+	"ZA": true, "SS": true, "SD": true, "TZ": true, "TG": true, "TN": true, "UG": true, "EH": true,
+	"ZM": true, "ZW": true,
+}
+
+// newAfricaMap keeps the sightings made in Africa that have a position.
+func newAfricaMap(sightings []sighting.Sighting) africaMap {
+	var m africaMap
+	countries := map[string]bool{}
+	for _, s := range sightings {
+		code, c := s.Location.CountryCode.String(), s.Location.Coordinates
+		if !africa[code] || (c.Latitude == 0 && c.Longitude == 0) {
+			continue
+		}
+		countries[code] = true
+		m.Points = append(m.Points, mapPoint{
+			Lat:   c.Latitude,
+			Lng:   c.Longitude,
+			Name:  components.DisplayName(s.Species),
+			Place: components.Place(s.Location),
+			Date:  s.HappenedAt.Format("2 Jan 2006"),
+			By:    s.RecordedBy,
+		})
+	}
+	m.Countries = len(countries)
+	return m
 }
 
 // hiddenCopy hides the wall's repeated list from screen readers.

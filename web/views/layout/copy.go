@@ -27,6 +27,7 @@ var site = struct {
 	Nav: []Link{
 		{Label: "Features", Href: "/#features"},
 		{Label: "How it works", Href: "/#how"},
+		{Label: "Map", Href: "/#africa"},
 		{Label: "Sightings", Href: "/#sightings"},
 		{Label: "FAQ", Href: "/#faq"},
 	},
@@ -38,6 +39,7 @@ var site = struct {
 		{Title: "Explore", Links: []Link{
 			{Label: "Features", Href: "/#features"},
 			{Label: "How it works", Href: "/#how"},
+			{Label: "Map of Africa", Href: "/#africa"},
 			{Label: "Sightings", Href: "/#sightings"},
 			{Label: "Run it yourself", Href: "/#install"},
 			{Label: "FAQ", Href: "/#faq"},

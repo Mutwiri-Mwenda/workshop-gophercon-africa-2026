@@ -46,6 +46,14 @@ var homeCopy = struct {
 	Photos          feature
 	Observers       feature
 
+	AfricaEyebrow  string
+	AfricaTitle    string
+	AfricaStat     string // takes the sighting and country counts
+	AfricaLive     string
+	AfricaLabel    string
+	AfricaFallback string
+	AfricaEmpty    string
+
 	CompareEyebrow string
 	CompareTitle   string
 	BeforeLabel    string
@@ -97,6 +105,14 @@ var homeCopy = struct {
 	Years:           feature{Title: "Decades of records", Body: "Sightings that go back to %d."},
 	Photos:          feature{Title: "Real photos, credited", Body: "Taken in the field, and credited to whoever took them."},
 	Observers:       feature{Title: "%d observers", Body: "Every record has a real person behind it."},
+
+	AfricaEyebrow:  "Live map",
+	AfricaTitle:    "Seen across Africa.",
+	AfricaStat:     "%d sightings · %d countries",
+	AfricaLive:     "Spotted",
+	AfricaLabel:    "Map of sightings across Africa",
+	AfricaFallback: "The map needs JavaScript and a connection to load.",
+	AfricaEmpty:    "No sightings in Africa yet.",
 
 	CompareEyebrow: "Before and after",
 	CompareTitle:   "Raw data in. A story out.",

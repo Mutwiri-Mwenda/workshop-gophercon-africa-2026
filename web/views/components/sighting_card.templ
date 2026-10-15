@@ -12,48 +12,91 @@ import (
 
 templ SightingCard(s sighting.Sighting) {
 	<article class="card">
-		<!-- Header -->
-		<header class="card__header">
-			<h2>{ displayName(s.Species) }</h2>
-			if s.Species.ScientificName != "" {
-				<p class="card__scientific">{ s.Species.ScientificName }</p>
+		<div class="card__media">
+			if m, ok := Cover(s); ok {
+				<img src={ m.URL } alt={ altText(m) } loading="lazy" decoding="async"/>
+			} else {
+				<div class={ "ph", Placeholder(s.GBIFKey) } role="img" aria-label="No photo recorded"></div>
 			}
-		</header>
-		<!-- Meta -->
-		<dl class="card__meta">
-			<dt>Seen</dt>
-			<dd>{ s.HappenedAt.Format("2 January 2006") }</dd>
-			<dt>Where</dt>
-			<dd>{ place(s.Location) }</dd>
-			if s.IndividualCount != nil {
-				<dt>Count</dt>
-				<dd>{ individuals(*s.IndividualCount) }</dd>
+			if n := photoCount(s); n > 1 {
+				<span class="card__badge">{ fmt.Sprintf("%d photos", n) }</span>
 			}
-			if s.RecordedBy != "" {
-				<dt>Recorded by</dt>
-				<dd>{ s.RecordedBy }</dd>
-			}
-		</dl>
-		<!-- Gallery -->
-		<div class="card__gallery">
-			@Gallery(s.Media)
+		</div>
+		<div class="card__body">
+			<header class="card__header">
+				<h3>{ DisplayName(s.Species) }</h3>
+				if s.Species.ScientificName != "" {
+					<p class="card__scientific">{ s.Species.ScientificName }</p>
+				}
+			</header>
+			<dl class="card__meta">
+				<div>
+					<dt>Seen</dt>
+					<dd>{ s.HappenedAt.Format("2 Jan 2006") }</dd>
+				</div>
+				<div>
+					<dt>Where</dt>
+					<dd>{ Place(s.Location) }</dd>
+				</div>
+				if s.IndividualCount != nil {
+					<div>
+						<dt>Count</dt>
+						<dd>{ individuals(*s.IndividualCount) }</dd>
+					</div>
+				}
+				if s.RecordedBy != "" {
+					<div>
+						<dt>Recorded by</dt>
+						<dd>{ s.RecordedBy }</dd>
+					</div>
+				}
+			</dl>
 		</div>
 	</article>
 }
 
-// displayName prefers the name a reader would recognise, falling back
+// DisplayName prefers the name a reader would recognise, falling back
 // through the taxonomy as GBIF records thin out.
-func displayName(sp species.Species) string {
+func DisplayName(sp species.Species) string {
 	return cmp.Or(sp.VernacularName, sp.CanonicalName, sp.ScientificName, "Unknown species")
 }
 
-// place joins whichever parts of the location GBIF supplied.
-func place(l sighting.Location) string {
+// Place joins whichever parts of the location GBIF supplied.
+func Place(l sighting.Location) string {
 	parts := slices.DeleteFunc(
 		[]string{l.Locality, l.StateProvince, l.Country},
 		func(s string) bool { return s == "" },
 	)
 	return cmp.Or(strings.Join(parts, ", "), "Location unknown")
+}
+
+// Cover returns the sighting's first photo, if it has one.
+func Cover(s sighting.Sighting) (sighting.Media, bool) {
+	i := slices.IndexFunc(s.Media, isPhoto)
+	if i < 0 {
+		return sighting.Media{}, false
+	}
+	return s.Media[i], true
+}
+
+// Placeholder picks one of the fixed gradient classes for a missing photo.
+func Placeholder(key int64) string {
+	return fmt.Sprintf("ph--%d", (key%4+4)%4)
+}
+
+func isPhoto(m sighting.Media) bool {
+	return m.Type == "StillImage" && m.URL != ""
+}
+
+// photoCount counts the sighting's photos.
+func photoCount(s sighting.Sighting) int {
+	n := 0
+	for _, m := range s.Media {
+		if isPhoto(m) {
+			n++
+		}
+	}
+	return n
 }
 
 // individuals renders how many animals were seen in a single sighting.

@@ -1,20 +1,273 @@
 package pages
 
 import (
+	"fmt"
 	"workshop/internal/domain/sighting"
 	"workshop/web/views/components"
 	"workshop/web/views/layout"
 )
 
 templ Home(sightings []sighting.Sighting) {
+	{{ p := newHomeProps(sightings) }}
 	@layout.Base(layout.BaseProps{
-		Title: "Sightings",
+		Title: "Sightings · See the wild, as it's seen",
 	}) {
-		<h1>Sightings</h1>
+		@hero(p)
+		@strip()
+		@how()
+		@features(p)
+		if p.Sample != nil {
+			@compare(p)
+		}
+		@sightingsList(sightings)
+		@install()
+		@faqs()
+		@closer()
+	}
+}
+
+templ hero(p homeProps) {
+	<section class="hero" aria-labelledby="hero-title">
+		<div class="demo" aria-label="A rotating preview of recent sightings" role="region">
+			<ol class={ "demo__slides", "loop", loopClass(len(p.Hero)) }>
+				for i, s := range p.Hero {
+					<li class="demo__slide">
+						if m, ok := components.Cover(s); ok {
+							if i == 0 {
+								<img src={ m.URL } alt={ components.DisplayName(s.Species) } fetchpriority="high" decoding="async"/>
+							} else {
+								<img src={ m.URL } alt={ components.DisplayName(s.Species) } loading="lazy" decoding="async"/>
+							}
+						} else {
+							<div class={ "ph", components.Placeholder(s.GBIFKey) } aria-hidden="true"></div>
+						}
+						<div class="wrap demo__chips">
+							<div class="demo__record">
+								<p class="demo__label"><span class="pulse" aria-hidden="true"></span>{ homeCopy.LiveLabel }</p>
+								<p class="demo__name">{ components.DisplayName(s.Species) }</p>
+								<p class="demo__meta">{ components.Place(s.Location) } · { s.HappenedAt.Format("2 Jan 2006") }</p>
+								if s.RecordedBy != "" {
+									<p class="demo__by">Recorded by { s.RecordedBy }</p>
+								}
+							</div>
+							if !s.Weather.ObservedAt.IsZero() {
+								<p class="demo__weather">{ temperature(s.Weather.Temperature.Actual) }<span>{ s.Weather.Condition.Description }</span></p>
+							}
+						</div>
+					</li>
+				}
+				if len(p.Hero) == 0 {
+					<li class="demo__slide"><div class="ph ph--0" aria-hidden="true"></div></li>
+				}
+			</ol>
+			<div class="demo__bar" aria-hidden="true"><span></span></div>
+		</div>
+		<div class="wrap hero__copy">
+			<p class="eyebrow eyebrow--live"><span class="pulse" aria-hidden="true"></span>{ homeCopy.Eyebrow }</p>
+			<h1 id="hero-title">{ homeCopy.Headline } <span class="hi">{ homeCopy.HeadlineHi }</span></h1>
+			<p class="hero__sub">{ fmt.Sprintf(homeCopy.Subtext, p.Summary.Sightings, p.Summary.Countries) }</p>
+			<div class="hero__ctas">
+				<a class="btn btn--primary btn--lg" href="#sightings">
+					{ homeCopy.PrimaryCTA }
+					<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 10h11m-4-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+				</a>
+				<a class="btn btn--ghost btn--lg" href="#features">
+					<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" fill="currentColor"></path></svg>
+					{ homeCopy.SecondaryCTA }
+				</a>
+			</div>
+		</div>
+	</section>
+}
+
+templ strip() {
+	<section class="strip" aria-label={ homeCopy.StripLabel }>
+		<p class="strip__label">{ homeCopy.StripLabel }</p>
+		<div class="strip__track">
+			<ul class="strip__list">
+				for _, s := range homeCopy.Strip {
+					<li>{ s }</li>
+				}
+			</ul>
+			<ul class="strip__list" aria-hidden="true">
+				for _, s := range homeCopy.Strip {
+					<li>{ s }</li>
+				}
+			</ul>
+		</div>
+	</section>
+}
+
+templ sectionHead(id, eyebrow, title string) {
+	<header class="section__head reveal">
+		<p class="eyebrow">{ eyebrow }</p>
+		<h2 id={ id }>{ title }</h2>
+	</header>
+}
+
+templ how() {
+	<section class="section wrap" id="how" aria-labelledby="how-title">
+		@sectionHead("how-title", homeCopy.HowEyebrow, homeCopy.HowTitle)
+		<ol class="steps">
+			for i, st := range homeCopy.Steps {
+				<li class="step reveal" style={ stepDelay(i) }>
+					<div class="step__visual" aria-hidden="true">
+						switch i {
+							case 0:
+								<div class="viz-pin"><span class="viz-pin__ring"></span><span class="viz-pin__ring"></span><svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" fill="currentColor"></path></svg></div>
+							case 1:
+								<div class="viz-rows">
+									<code>INSERT INTO sightings …</code>
+									<code>INSERT INTO weather …</code>
+									<code class="ok">✓ 2 rows</code>
+								</div>
+							default:
+								<div class="viz-card"><span></span><span></span><span></span><span></span></div>
+						}
+					</div>
+					<p class="step__num">0{ fmt.Sprint(i + 1) }</p>
+					<h3>{ st.Title }</h3>
+					<p>{ st.Body }</p>
+				</li>
+			}
+		</ol>
+	</section>
+}
+
+templ features(p homeProps) {
+	<section class="section wrap" id="features" aria-labelledby="features-title">
+		@sectionHead("features-title", homeCopy.FeaturesEyebrow, homeCopy.FeaturesTitle)
+		<div class="bento">
+			<article class="tile tile--map reveal">
+				<div class="tile__preview">
+					<svg class="map" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label={ fmt.Sprintf("%d sightings plotted on a world map", len(p.Dots)) }>
+						<g class="map__grid">
+							for x := 0; x <= 360; x += 30 {
+								<line x1={ fmt.Sprint(x) } y1="0" x2={ fmt.Sprint(x) } y2="180"></line>
+							}
+							for y := 0; y <= 180; y += 30 {
+								<line x1="0" y1={ fmt.Sprint(y) } x2="360" y2={ fmt.Sprint(y) }></line>
+							}
+						</g>
+						<g class="map__dots">
+							for _, d := range p.Dots {
+								<circle cx={ d.X } cy={ d.Y } r="1.6"></circle>
+							}
+						</g>
+					</svg>
+				</div>
+				@tileText(homeCopy.Map.Title, homeCopy.Map.Body)
+			</article>
+			<article class="tile tile--weather reveal" style="--reveal-delay: 100ms">
+				<div class="tile__preview">
+					if len(p.Weather) == 0 {
+						<div class="ph ph--2" aria-hidden="true"></div>
+					} else {
+						<ol class={ "wx", "loop", loopClass(len(p.Weather)) }>
+							for _, s := range p.Weather {
+								<li>
+									<p class="wx__temp">{ temperature(s.Weather.Temperature.Actual) }</p>
+									<p class="wx__cond">{ s.Weather.Condition.Description }</p>
+									<p class="wx__wind">Wind { fmt.Sprintf("%.0f", s.Weather.Wind.Speed) } km/h · { fmt.Sprint(s.Weather.Humidity) }% humidity</p>
+									<p class="wx__where">{ components.DisplayName(s.Species) }, { s.Location.Country }</p>
+								</li>
+							}
+						</ol>
+					}
+				</div>
+				@tileText(homeCopy.Weather.Title, homeCopy.Weather.Body)
+			</article>
+			<article class="tile reveal">
+				<div class="tile__preview">
+					<ol class="bars">
+						for _, b := range p.Top {
+							<li>
+								<span class="bars__name">{ b.Name }</span>
+								<span class="bars__count">{ fmt.Sprint(b.Count) }</span>
+								<svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="bars__track" width="100" height="6" rx="3"></rect><rect class="bars__fill" width={ b.Width } height="6" rx="3"></rect></svg>
+							</li>
+						}
+					</ol>
+				</div>
+				@tileText(homeCopy.Top.Title, homeCopy.Top.Body)
+			</article>
+			<article class="tile reveal" style="--reveal-delay: 100ms">
+				<div class="tile__preview">
+					if p.Spark.Line != "" {
+						<svg class="spark" viewBox="0 0 300 80" preserveAspectRatio="none" role="img" aria-label={ fmt.Sprintf("Sightings per year, %d to %d", p.Spark.From, p.Spark.To) }>
+							<defs>
+								<linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0" stop-color="#C8FF3D" stop-opacity="0.35"></stop>
+									<stop offset="1" stop-color="#C8FF3D" stop-opacity="0"></stop>
+								</linearGradient>
+							</defs>
+							<path class="spark__area" d={ p.Spark.Area }></path>
+							<path class="spark__line" d={ p.Spark.Line } pathLength="1"></path>
+						</svg>
+						<p class="spark__axis"><span>{ fmt.Sprint(p.Spark.From) }</span><span>{ fmt.Sprint(p.Spark.To) }</span></p>
+					}
+				</div>
+				@tileText(homeCopy.Years.Title, fmt.Sprintf(homeCopy.Years.Body, p.Spark.From))
+			</article>
+			<article class="tile tile--photo reveal" style="--reveal-delay: 200ms">
+				<div class="tile__preview">
+					if p.Photo != nil {
+						if m, ok := components.Cover(*p.Photo); ok {
+							<img class="kenburns" src={ m.URL } alt={ components.DisplayName(p.Photo.Species) } loading="lazy" decoding="async"/>
+							if m.Creator != "" {
+								<p class="credit">© { m.Creator }</p>
+							}
+						}
+					} else {
+						<div class="ph ph--1" aria-hidden="true"></div>
+					}
+				</div>
+				@tileText(homeCopy.Photos.Title, homeCopy.Photos.Body)
+			</article>
+			<article class="tile reveal">
+				<div class="tile__preview">
+					<ol class={ "people", "loop", loopClass(len(p.Observers)) }>
+						for _, o := range p.Observers {
+							<li><span class="people__avatar" aria-hidden="true">{ initial(o) }</span><span class="people__name">{ o }</span></li>
+						}
+					</ol>
+				</div>
+				@tileText(fmt.Sprintf(homeCopy.Observers.Title, p.Summary.Recorders), homeCopy.Observers.Body)
+			</article>
+		</div>
+	</section>
+}
+
+templ tileText(title, body string) {
+	<div class="tile__text">
+		<h3>{ title }</h3>
+		<p>{ body }</p>
+	</div>
+}
+
+templ compare(p homeProps) {
+	<section class="section wrap" id="compare" aria-labelledby="compare-title">
+		@sectionHead("compare-title", homeCopy.CompareEyebrow, homeCopy.CompareTitle)
+		<div class="compare reveal">
+			<figure class="compare__side compare__side--before">
+				<figcaption><span class="tag">Before</span>{ homeCopy.BeforeLabel }</figcaption>
+				<pre><code>{ p.Raw }</code></pre>
+			</figure>
+			<figure class="compare__side compare__side--after">
+				<figcaption><span class="tag tag--hi">After</span>{ homeCopy.AfterLabel }</figcaption>
+				@components.SightingCard(*p.Sample)
+			</figure>
+		</div>
+	</section>
+}
+
+templ sightingsList(sightings []sighting.Sighting) {
+	<section class="section wrap" id="sightings" aria-labelledby="sightings-title">
+		@sectionHead("sightings-title", homeCopy.SightingsEyebrow, homeCopy.SightingsTitle)
 		if len(sightings) == 0 {
-			<p>No sightings have been ingested yet.</p>
+			<p class="empty">{ homeCopy.SightingsEmpty }</p>
 		} else {
-			<p>Total: { len(sightings) }</p>
+			<p class="sightings__count">{ fmt.Sprint(len(sightings)) } sightings</p>
 			<ul class="sightings">
 				for _, s := range sightings {
 					<li>
@@ -23,5 +276,54 @@ templ Home(sightings []sighting.Sighting) {
 				}
 			</ul>
 		}
-	}
+	</section>
+}
+
+templ install() {
+	<section class="section wrap" id="install" aria-labelledby="install-title">
+		<div class="install reveal">
+			<div class="install__copy">
+				<p class="eyebrow">{ homeCopy.InstallEyebrow }</p>
+				<h2 id="install-title">{ homeCopy.InstallTitle }</h2>
+				<p>{ homeCopy.InstallBody }</p>
+			</div>
+			<div class="tabs" data-tabs>
+				<div class="tabs__list" role="tablist" aria-label="Platform">
+					for i, t := range homeCopy.InstallTabs {
+						<button type="button" role="tab" id={ "tab-" + t.ID } aria-controls={ "panel-" + t.ID } aria-selected={ fmt.Sprint(i == 0) } tabindex={ tabIndex(i) }>{ t.Label }</button>
+					}
+				</div>
+				for i, t := range homeCopy.InstallTabs {
+					<div class="tabs__panel" role="tabpanel" id={ "panel-" + t.ID } aria-labelledby={ "tab-" + t.ID } hidden?={ i != 0 }>
+						<pre><code>{ t.Code }</code></pre>
+						<button type="button" class="copy" data-copy={ t.Code } data-copied={ homeCopy.CopiedLabel }>{ homeCopy.CopyLabel }</button>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+templ faqs() {
+	<section class="section wrap wrap--narrow" id="faq" aria-labelledby="faq-title">
+		@sectionHead("faq-title", homeCopy.FAQEyebrow, homeCopy.FAQTitle)
+		<div class="faq reveal">
+			for _, f := range homeCopy.FAQs {
+				<details>
+					<summary>{ f.Q }<span class="faq__icon" aria-hidden="true"></span></summary>
+					<p>{ f.A }</p>
+				</details>
+			}
+		</div>
+	</section>
+}
+
+templ closer() {
+	<section class="closer" aria-labelledby="closer-title">
+		<div class="wrap closer__inner reveal">
+			<h2 id="closer-title">{ homeCopy.CloserTitle }</h2>
+			<p>{ homeCopy.CloserBody }</p>
+			<a class="btn btn--primary btn--lg" href="#sightings">{ homeCopy.CloserCTA }</a>
+		</div>
+	</section>
 }

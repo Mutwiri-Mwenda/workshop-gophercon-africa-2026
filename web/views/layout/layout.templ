@@ -1,5 +1,7 @@
 package layout
 
+import "time"
+
 type BaseProps struct {
 	Title string
 }
@@ -10,14 +12,85 @@ templ Base(props BaseProps) {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link rel="icon" href="/assets/images/logo.svg" type="image/svg+xml"/>
+			<link rel="manifest" href="/assets/manifest.json"/>
+			<meta name="theme-color" content="#07080A"/>
+			<meta name="color-scheme" content="dark"/>
+			<meta name="description" content={ site.Description }/>
 			<title>{ props.Title }</title>
+			<script>document.documentElement.classList.add('js')</script>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"/>
 			<link rel="stylesheet" href="/assets/css/app.css"/>
+			<link rel="stylesheet" href="/assets/css/reveal.css"/>
+			<script src="/assets/js/reveal.js" defer></script>
+			<script src="/assets/js/app.js" defer></script>
 		</head>
 		<body>
-			<main class="container">
+			<a class="skip" href="#main">Skip to content</a>
+			<header class="nav" data-nav>
+				<div class="nav__inner">
+					<a class="logo" href="/">
+						<img src="/assets/images/logo.svg" alt={ site.Name + ", home" } width="32" height="32"/>
+						<span class="logo__name">{ site.Name }</span>
+					</a>
+					<nav class="nav__links" aria-label="Main">
+						for _, l := range site.Nav {
+							<a href={ templ.SafeURL(l.Href) }>{ l.Label }</a>
+						}
+					</nav>
+					<a class="btn btn--primary btn--sm nav__cta" href={ templ.SafeURL(site.CTA.Href) }>{ site.CTA.Label }</a>
+					<details class="nav__menu">
+						<summary aria-label="Menu">
+							<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+						</summary>
+						<nav class="nav__drawer" aria-label="Main, mobile">
+							for _, l := range site.Nav {
+								<a href={ templ.SafeURL(l.Href) }>{ l.Label }</a>
+							}
+							<a class="btn btn--primary" href={ templ.SafeURL(site.CTA.Href) }>{ site.CTA.Label }</a>
+						</nav>
+					</details>
+				</div>
+			</header>
+			<main id="main">
 				{ children... }
 			</main>
-			<script src="/assets/js/app.js"></script>
+			<footer class="footer">
+				<div class="footer__inner">
+					<div class="footer__brand">
+						<a class="logo" href="/">
+							<img src="/assets/images/logo.svg" alt="" width="32" height="32"/>
+							<span class="logo__name">{ site.Name }</span>
+						</a>
+						<p>{ site.Tagline }</p>
+						<ul class="footer__social">
+							<li>
+								<a href={ templ.SafeURL(site.GitHub.Href) } rel="noopener" aria-label={ site.GitHub.Label }>
+									<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"></path></svg>
+								</a>
+							</li>
+							for _, s := range site.Socials {
+								if s.Href != "" {
+									<li><a href={ templ.SafeURL(s.Href) } rel="noopener">{ s.Label }</a></li>
+								}
+							}
+						</ul>
+					</div>
+					for _, col := range site.FooterCols {
+						<nav class="footer__col" aria-label={ col.Title }>
+							<h2>{ col.Title }</h2>
+							<ul>
+								for _, l := range col.Links {
+									<li><a href={ templ.SafeURL(l.Href) }>{ l.Label }</a></li>
+								}
+							</ul>
+						</nav>
+					}
+				</div>
+				<p class="footer__credit">© { time.Now().Format("2006") } · { site.Credit }</p>
+			</footer>
 		</body>
 	</html>
 }

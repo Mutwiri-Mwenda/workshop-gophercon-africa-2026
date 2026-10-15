@@ -1,0 +1,8 @@
+{
+	"name": "Sightings",
+	"short_name": "Sightings",
+	"icons": [{ "src": "/assets/images/logo.svg", "sizes": "any", "type": "image/svg+xml" }],
+	"theme_color": "#07080A",
+	"background_color": "#07080A",
+	"display": "standalone"
+}

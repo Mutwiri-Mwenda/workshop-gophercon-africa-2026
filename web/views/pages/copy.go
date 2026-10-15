@@ -28,7 +28,7 @@ var homeCopy = struct {
 	Subtext      string // takes the sighting and country counts
 	PrimaryCTA   string
 	SecondaryCTA string
-	LiveLabel    string
+	WallLabel    string
 
 	StripLabel string
 	Strip      []string
@@ -76,7 +76,7 @@ var homeCopy = struct {
 	Subtext:      "%d real sightings from %d countries. Photos, places and the weather on the day.",
 	PrimaryCTA:   "Explore sightings",
 	SecondaryCTA: "See it in action",
-	LiveLabel:    "Live record",
+	WallLabel:    "Animals recently seen",
 
 	StripLabel: "Powered by",
 	Strip:      []string{"GBIF", "Open-Meteo", "SQLite", "sqlc", "templ", "Go"},

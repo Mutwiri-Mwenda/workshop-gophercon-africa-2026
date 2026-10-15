@@ -31,8 +31,10 @@ white headlines, one electric accent, big rounded cards and previews that loop.
 
 - **Logo**: a dark eye on a lime rounded square, `assets/images/logo.svg`, also the favicon.
 - **Navbar**: sticky, clear over the hero, blurred dark once scrolled.
-- **Hero**: full-bleed, the latest sightings' photos crossfading and slowly zooming behind a
-  centred headline; a glass card bottom-left names the animal, place, date and observer.
+- **Hero**: full-bleed, with a tilted wall of animal photos behind a centred headline. Five
+  columns (three on a phone) drift up and down at different speeds and pause on hover. Each
+  3:4 tile has a glass pill naming the animal and country, and every animal appears once before
+  any repeats. iNaturalist photos use their 500px `medium` copy, not the original.
 - **Tiles and cards**: `--surface`, soft border; on hover a lime edge and a soft lime glow.
 - **Previews**: CSS loops only, paused off screen and frozen on the first frame for reduced motion.
 - **Sightings**: a photo wall of cards, 4:3 photos, with gradient placeholders when there's none.

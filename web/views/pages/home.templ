@@ -28,39 +28,13 @@ templ Home(sightings []sighting.Sighting) {
 
 templ hero(p homeProps) {
 	<section class="hero" aria-labelledby="hero-title">
-		<div class="demo" aria-label="A rotating preview of recent sightings" role="region">
-			<ol class={ "demo__slides", "loop", loopClass(len(p.Hero)) }>
-				for i, s := range p.Hero {
-					<li class="demo__slide">
-						if m, ok := components.Cover(s); ok {
-							if i == 0 {
-								<img src={ m.URL } alt={ components.DisplayName(s.Species) } fetchpriority="high" decoding="async"/>
-							} else {
-								<img src={ m.URL } alt={ components.DisplayName(s.Species) } loading="lazy" decoding="async"/>
-							}
-						} else {
-							<div class={ "ph", components.Placeholder(s.GBIFKey) } aria-hidden="true"></div>
-						}
-						<div class="wrap demo__chips">
-							<div class="demo__record">
-								<p class="demo__label"><span class="pulse" aria-hidden="true"></span>{ homeCopy.LiveLabel }</p>
-								<p class="demo__name">{ components.DisplayName(s.Species) }</p>
-								<p class="demo__meta">{ components.Place(s.Location) } · { s.HappenedAt.Format("2 Jan 2006") }</p>
-								if s.RecordedBy != "" {
-									<p class="demo__by">Recorded by { s.RecordedBy }</p>
-								}
-							</div>
-							if !s.Weather.ObservedAt.IsZero() {
-								<p class="demo__weather">{ temperature(s.Weather.Temperature.Actual) }<span>{ s.Weather.Condition.Description }</span></p>
-							}
-						</div>
-					</li>
-				}
-				if len(p.Hero) == 0 {
-					<li class="demo__slide"><div class="ph ph--0" aria-hidden="true"></div></li>
-				}
-			</ol>
-			<div class="demo__bar" aria-hidden="true"><span></span></div>
+		<div class="wall" role="region" aria-label={ homeCopy.WallLabel }>
+			for _, col := range p.Wall {
+				<div class="wall__col">
+					@wallTiles(col, false)
+					@wallTiles(col, true)
+				</div>
+			}
 		</div>
 		<div class="wrap hero__copy">
 			<p class="eyebrow eyebrow--live"><span class="pulse" aria-hidden="true"></span>{ homeCopy.Eyebrow }</p>
@@ -78,6 +52,25 @@ templ hero(p homeProps) {
 			</div>
 		</div>
 	</section>
+}
+
+templ wallTiles(tiles []wallTile, duplicate bool) {
+	<ul class="wall__list" { hiddenCopy(duplicate)... }>
+		for _, w := range tiles {
+			<li>
+				<figure class="wall__tile">
+					if w.Photo != "" {
+						<img src={ w.Photo } alt="" loading="lazy" decoding="async"/>
+					} else {
+						<div class={ "ph", w.Placeholder }></div>
+					}
+					if w.Name != "" {
+						<figcaption><span>{ w.Name }</span> { w.Place }</figcaption>
+					}
+				</figure>
+			</li>
+		}
+	</ul>
 }
 
 templ strip() {

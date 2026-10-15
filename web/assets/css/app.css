@@ -333,7 +333,7 @@ p {
 	justify-content: center;
 	min-height: clamp(680px, 100svh, 1000px);
 	margin-top: -72px;
-	padding: 152px 0 clamp(220px, 24vw, 260px);
+	padding: 152px 0 120px;
 	text-align: center;
 	isolation: isolate;
 	overflow: hidden;
@@ -388,43 +388,122 @@ p {
 	}
 }
 
-.demo {
+/* The wall: columns of animals drifting up and down behind the headline */
+
+.wall {
 	position: absolute;
-	inset: 0;
+	--gap: 16px;
+	inset: -20% -10%;
 	z-index: -1;
-	background: var(--surface);
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: var(--gap);
+	transform: rotate(-8deg);
 	text-align: left;
 }
 
-.demo__slides {
-	position: absolute;
-	inset: 0;
+.wall__col {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+	animation: drift 60s linear infinite;
+}
+
+.wall__col:nth-child(2n) {
+	animation-direction: reverse;
+	animation-duration: 75s;
+}
+
+.wall__col:nth-child(3) {
+	animation-duration: 52s;
+}
+
+.wall__col:nth-child(5) {
+	animation-duration: 68s;
+}
+
+.wall:hover .wall__col {
+	animation-play-state: paused;
+}
+
+@keyframes drift {
+	to {
+		transform: translateY(calc(-50% - var(--gap) / 2));
+	}
+}
+
+.wall__list {
+	display: grid;
+	gap: var(--gap);
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-.demo__slide {
-	position: absolute;
-	inset: 0;
+.wall__tile {
+	position: relative;
+	margin: 0;
+	aspect-ratio: 3 / 4;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--surface-2);
 	overflow: hidden;
 }
 
-.demo__slide img,
-.demo__slide .ph {
+.wall__tile img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	animation: zoom 20s linear infinite alternate;
 }
 
-.demo__slide::after {
+.wall__tile figcaption {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+	overflow: hidden;
+	padding: 7px 11px;
+	border-radius: 999px;
+	background: rgba(7, 8, 10, 0.6);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	color: var(--muted);
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.wall__tile figcaption span {
+	color: var(--text);
+	font-weight: 600;
+	text-transform: capitalize;
+}
+
+/* Darkens the wall so the headline reads, and fades it into the page. */
+.hero::before {
 	content: "";
 	position: absolute;
 	inset: 0;
+	z-index: -1;
 	background:
-		radial-gradient(55% 45% at 50% 45%, rgba(7, 8, 10, 0.45), transparent 75%),
-		linear-gradient(180deg, rgba(7, 8, 10, 0.75) 0%, rgba(7, 8, 10, 0.3) 32%, rgba(7, 8, 10, 0.5) 72%, var(--bg) 100%);
+		radial-gradient(50% 42% at 50% 46%, rgba(7, 8, 10, 0.82), rgba(7, 8, 10, 0.4) 80%),
+		linear-gradient(180deg, rgba(7, 8, 10, 0.8) 0%, rgba(7, 8, 10, 0.2) 30%, rgba(7, 8, 10, 0.3) 70%, var(--bg) 100%);
+	pointer-events: none;
+}
+
+@media (max-width: 720px) {
+	.wall {
+		--gap: 10px;
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.wall__col:nth-child(n + 4) {
+		display: none;
+	}
+
+	.wall__tile figcaption {
+		display: none;
+	}
 }
 
 @keyframes zoom {
@@ -433,109 +512,6 @@ p {
 	}
 	to {
 		transform: scale(1.12);
-	}
-}
-
-.demo__chips {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: clamp(40px, 6vw, 72px);
-	z-index: 1;
-	display: flex;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: 16px;
-}
-
-.demo__record,
-.demo__weather {
-	border: 1px solid var(--border-strong);
-	background: rgba(17, 19, 23, 0.55);
-	backdrop-filter: blur(18px);
-	-webkit-backdrop-filter: blur(18px);
-}
-
-.demo__record {
-	max-width: 440px;
-	padding: 18px 20px;
-	border-radius: var(--radius-md);
-}
-
-.demo__label {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin-bottom: 10px;
-	color: var(--accent);
-	font: 500 12px/1 var(--font-mono);
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-}
-
-.demo__name {
-	font: 800 clamp(22px, 3vw, 30px) / 1.1 var(--font-display);
-	letter-spacing: -0.03em;
-	text-transform: capitalize;
-}
-
-.demo__meta,
-.demo__by {
-	margin-top: 6px;
-	color: var(--muted);
-	font-size: 14px;
-}
-
-.demo__weather {
-	display: grid;
-	flex: none;
-	padding: 12px 16px;
-	border-radius: var(--radius-sm);
-	font: 800 24px/1 var(--font-display);
-	text-align: right;
-}
-
-.demo__weather span {
-	margin-top: 6px;
-	color: var(--muted);
-	font: 500 12px/1.2 var(--font-body);
-	text-transform: capitalize;
-}
-
-@media (max-width: 720px) {
-	.demo__weather {
-		display: none;
-	}
-
-	.demo__record {
-		padding: 14px 16px;
-	}
-}
-
-.demo__bar {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 2;
-	height: 3px;
-	background: rgba(255, 255, 255, 0.08);
-}
-
-.demo__bar span {
-	display: block;
-	height: 100%;
-	background: var(--accent);
-	transform-origin: left;
-	animation: progress 4s linear infinite;
-}
-
-@keyframes progress {
-	from {
-		transform: scaleX(0);
-	}
-	to {
-		transform: scaleX(1);
 	}
 }
 
@@ -577,12 +553,6 @@ p {
 }
 .loop > :nth-child(5) {
 	animation-delay: 16s;
-}
-
-/* The slide's image keeps its own zoom, not the slide's delay. */
-.demo__slide img,
-.demo__slide .ph {
-	animation-delay: 0s;
 }
 
 @keyframes loop2 {
@@ -1786,9 +1756,5 @@ html:not(.js) .tabs__panel[hidden] {
 
 	.viz-rows code {
 		opacity: 1;
-	}
-
-	.demo__bar {
-		display: none;
 	}
 }

@@ -15,7 +15,7 @@ import (
 type (
 	homeProps struct {
 		Summary   sighting.Summary
-		Hero      []sighting.Sighting
+		Wall      [][]wallTile
 		Dots      []dot
 		Spark     spark
 		Top       []bar
@@ -24,6 +24,10 @@ type (
 		Observers []string
 		Sample    *sighting.Sighting
 		Raw       string
+	}
+	// wallTile is one photo on the hero's moving wall of animals.
+	wallTile struct {
+		Name, Place, Photo, Placeholder string
 	}
 	// dot is a sighting's position on a 360 by 180 equirectangular map.
 	dot struct{ X, Y string }
@@ -46,10 +50,7 @@ func newHomeProps(sightings []sighting.Sighting) homeProps {
 		_, ok := components.Cover(s)
 		return !ok
 	})
-	p.Hero = withPhoto[:min(5, len(withPhoto))]
-	if len(p.Hero) == 0 {
-		p.Hero = sightings[:min(5, len(sightings))]
-	}
+	p.Wall = newWall(withPhoto)
 	if len(withPhoto) > 5 {
 		p.Photo = &withPhoto[5]
 	} else if len(withPhoto) > 0 {
@@ -108,6 +109,52 @@ func newHomeProps(sightings []sighting.Sighting) homeProps {
 	}
 
 	return p
+}
+
+// wallColumns and wallRows size the hero's wall of animals.
+const wallColumns, wallRows = 5, 6
+
+// newWall deals photos into columns, one of each animal before any repeats.
+func newWall(withPhoto []sighting.Sighting) [][]wallTile {
+	var first, rest []sighting.Sighting
+	seen := map[string]bool{}
+	for _, s := range withPhoto {
+		if name := components.DisplayName(s.Species); !seen[name] {
+			seen[name] = true
+			first = append(first, s)
+		} else {
+			rest = append(rest, s)
+		}
+	}
+	picked := append(first, rest...)
+
+	wall := make([][]wallTile, wallColumns)
+	for i := range wallColumns * wallRows {
+		t := wallTile{Placeholder: fmt.Sprintf("ph--%d", i%4)}
+		if len(picked) > 0 {
+			s := picked[i%len(picked)]
+			m, _ := components.Cover(s)
+			t.Name, t.Place, t.Photo = components.DisplayName(s.Species), s.Location.Country, smallPhoto(m.URL)
+		}
+		wall[i%wallColumns] = append(wall[i%wallColumns], t)
+	}
+	return wall
+}
+
+// smallPhoto swaps an iNaturalist original for its 500px copy.
+func smallPhoto(url string) string {
+	if !strings.HasPrefix(url, "https://inaturalist-open-data.s3.amazonaws.com/") {
+		return url
+	}
+	return strings.Replace(url, "/original.", "/medium.", 1)
+}
+
+// hiddenCopy hides the wall's repeated list from screen readers.
+func hiddenCopy(duplicate bool) templ.Attributes {
+	if duplicate {
+		return templ.Attributes{"aria-hidden": "true"}
+	}
+	return nil
 }
 
 // newSpark draws sightings per year as an SVG path on a 300 by 80 box.

@@ -67,7 +67,7 @@
 				entry.target.classList.toggle('is-paused', !entry.isIntersecting);
 			});
 		});
-		document.querySelectorAll('.demo, .strip, .step__visual, .tile__preview').forEach(function (el) {
+		document.querySelectorAll('.wall, .strip, .step__visual, .tile__preview').forEach(function (el) {
 			observer.observe(el);
 		});
 	}
